@@ -1,0 +1,7 @@
+pip install transformers
+pip install git+https://github.com/openai/whisper.git 
+pip install transformers torch
+pip install tf-keras
+pip install --upgrade "optree>=0.13.0"
+pip install speechrecognition pydub transformers torch nltk scikit-learn
+pip install openai-whisper transformers torch bertopic scikit-learn nltk presidio-analyzer

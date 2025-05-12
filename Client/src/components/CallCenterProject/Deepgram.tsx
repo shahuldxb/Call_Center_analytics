@@ -100,41 +100,6 @@ function Deepgram() {
       Object.values(newSrcs).forEach((url) => URL.revokeObjectURL(url));
     };
   };
-  // const handleProcessClick = async () => {
-  //   if (selectedFile.length === 0) {
-  //     alert("Please select one or more audio files.");
-  //     return;
-  //   }
-  //   setLoading(true);
-  //   const formData = new FormData();
-
-  //   selectedFile.forEach((file, index) => {
-  //     formData.append(`audio${index}`, file);
-  //   });
-
-  //   try {
-  //     const response = await fetch("http://localhost:5000/audio", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-
-  //     const result = await response.json();
-  //     console.log("result",result)
-  //     if (response.ok) {
-  //       setTranscriptionResult(result.results);
-
-  //     } else {
-  //       console.error("❌ Error:", result.error);
-  //       alert("Error: " + result.error);
-  //     }
-  //   } catch (error) {
-  //     console.error("Upload failed:", error);
-  //     alert("Upload failed. Check server console.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
 
   const handleProcessClick = async () => {
   if (selectedFile.length === 0) {

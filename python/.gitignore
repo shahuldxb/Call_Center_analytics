@@ -1,0 +1,11 @@
+    
+.env 
+uploads/
+temp/
+__pycache__/
+predicted_emotions.xlsx
+venv/
+*.pyd
+*.dll
+*.wav
+

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 
 function Whisper() {
+  
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState(null);
@@ -17,30 +18,6 @@ function Whisper() {
       setSelectedFiles(files);
     }
   };
-
-  // const handleProcessClick = async () => {
-  //   if (!selectedFiles) return;
-  //   setLoading(true);
-  //   setResults([]); // clear previous results
-
-  //   const formData = new FormData();
-  //   for (let i = 0; i < selectedFiles.length; i++) {
-  //     formData.append("files", selectedFiles[i]);
-  //   }
-  //   try {
-  //     const response = await fetch("http://localhost:5000/process-audio", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-  //     const data = await response.json();
-  //     console.log("data", data);
-  //     setResults(data); // ✅ Save the results to state
-  //   } catch (error) {
-  //     console.error("Error uploading files:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleProcessClick = async () => {
     if (!selectedFiles) return;
@@ -63,8 +40,8 @@ function Whisper() {
     if (!reader) return;
 
     let partial = "";
-
-    while (true) {
+    const condition: boolean = true;
+    while (condition) {
       const { value, done } = await reader.read();
       if (done) break;
 

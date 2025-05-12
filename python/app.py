@@ -133,58 +133,6 @@ def serve_uploaded_audio():
         return jsonify({"error": "File not found"}), 404
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=False)
 
-
-#whisper
-# @app.route('/process-audio', methods=['POST'])
-# def process_audio():
-#     if not request.files:
-#         return jsonify({'error': 'No file uploaded'}), 400
-    
-#     files = request.files.getlist('files')
-#     print("files:", files)
-#     if not files:
-#         return jsonify({'error': 'Empty files list received'}), 400
-
-#     results = []
-#     for file in files:
-#         if file.filename == '':
-#             continue  # Skip empty file fields
-        
-#         try:
-#             filename = secure_filename(file.filename)
-#             filepath = os.path.join(UPLOAD_FOLDER, filename)
-#             print(f"Saving file to {filepath}")
-
-#             # Ensure the upload folder exists
-#             if not os.path.exists(UPLOAD_FOLDER):
-#                 os.makedirs(UPLOAD_FOLDER)
-
-#             file.save(filepath)
-#             print(f"File saved successfully: {filepath}")
-
-#             # Process the audio file
-#             result = process_audio_file(filepath)
-#             print(f"Processing result: {result}")
-
-#             results.append({
-#                 'filename': filename,
-#                 'transcription': result['transcription'],
-#                 'translation': result['translation']
-#             })
-
-#             os.remove(filepath)
-#             print(f"File removed: {filepath}")
-#         except Exception as e:
-#             print(f"Error processing file {file.filename}: {str(e)}")
-#             return jsonify({'error': f'Failed to process file {file.filename}: {str(e)}'}), 500
-
-#     if not results:
-#         return jsonify({'error': 'No valid files processed'}), 400
-
-#     return jsonify(results)
-
-
-
 @app.route('/process-audio-stream', methods=['POST'])
 def process_audio_stream():
     if not request.files:

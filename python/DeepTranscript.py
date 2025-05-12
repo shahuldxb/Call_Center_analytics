@@ -1,8 +1,9 @@
 import requests
-
+import os
+from dotenv import load_dotenv
+load_dotenv() 
 def analyze_audio_with_deepgram(audio_url):
-    # DEEPGRAM_API_KEY = "41cd0c1f81b4d2408c70a3e446866fa7d601aa6b" 
-    DEEPGRAM_API_KEY = "34ccc97865712bbe02edbb2bbc720022616b0841"
+    DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
     headers = {
         "Authorization": f"Token {DEEPGRAM_API_KEY}",
         "Content-Type": "application/json"

@@ -1,8 +1,7 @@
-from flask import Flask, jsonify, request,send_file, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory,Response, stream_with_context
 from flask_cors import CORS
 import os
 from extact import generateSummary, text_analytics_client
-from DocumentTranslation import upload_and_translate_documents,generate_file_url
 import logging
 from predict_only import predict  
 from Topics import process_topic_modeling
@@ -15,7 +14,7 @@ import requests
 from werkzeug.utils import secure_filename
 from audio import process_audio_file
 import os
-
+import json
 app = Flask(__name__)
 CORS(app)
 cors = CORS(app, resources={r"/predict": {"origins": "http://localhost:3000"}})
@@ -91,32 +90,6 @@ def api_generate_summary():
     result = generateSummary(documents,text_analytics_client)
     return jsonify(result)
 
-@app.route('/translate-documents', methods=['POST'])
-def translate_documents():
-    files = request.files.getlist('files')
-    languages = request.form.getlist('languages')
-    print('files',files)
-    print('languages',languages)
-    # Assuming files are sent with the 'files' key
-    if not files:
-        return jsonify({"error": "No files provided"}), 400
-    try:
-        # Call the function to handle document upload and translation
-        translation_results = upload_and_translate_documents(files,languages)
-        print('translation_results',translation_results)
-        return jsonify(translation_results), 200
-    except Exception as e:
-        logging.error('Failed to translate documents', exc_info=True)
-        return jsonify({"error": str(e)}), 500
-    
-@app.route('/download-file/<path:file_path>', methods=['GET'])
-def download_file(file_path):
-    file_url = generate_file_url(file_path)
-    print('file_url',file_url)
-    return jsonify({"file_url": file_url}), 200
-
-
-
 # # deepgram (synchronous)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -162,53 +135,86 @@ def serve_uploaded_audio():
 
 
 #whisper
-@app.route('/process-audio', methods=['POST'])
-def process_audio():
+# @app.route('/process-audio', methods=['POST'])
+# def process_audio():
+#     if not request.files:
+#         return jsonify({'error': 'No file uploaded'}), 400
+    
+#     files = request.files.getlist('files')
+#     print("files:", files)
+#     if not files:
+#         return jsonify({'error': 'Empty files list received'}), 400
+
+#     results = []
+#     for file in files:
+#         if file.filename == '':
+#             continue  # Skip empty file fields
+        
+#         try:
+#             filename = secure_filename(file.filename)
+#             filepath = os.path.join(UPLOAD_FOLDER, filename)
+#             print(f"Saving file to {filepath}")
+
+#             # Ensure the upload folder exists
+#             if not os.path.exists(UPLOAD_FOLDER):
+#                 os.makedirs(UPLOAD_FOLDER)
+
+#             file.save(filepath)
+#             print(f"File saved successfully: {filepath}")
+
+#             # Process the audio file
+#             result = process_audio_file(filepath)
+#             print(f"Processing result: {result}")
+
+#             results.append({
+#                 'filename': filename,
+#                 'transcription': result['transcription'],
+#                 'translation': result['translation']
+#             })
+
+#             os.remove(filepath)
+#             print(f"File removed: {filepath}")
+#         except Exception as e:
+#             print(f"Error processing file {file.filename}: {str(e)}")
+#             return jsonify({'error': f'Failed to process file {file.filename}: {str(e)}'}), 500
+
+#     if not results:
+#         return jsonify({'error': 'No valid files processed'}), 400
+
+#     return jsonify(results)
+
+
+
+@app.route('/process-audio-stream', methods=['POST'])
+def process_audio_stream():
     if not request.files:
         return jsonify({'error': 'No file uploaded'}), 400
-    
+
     files = request.files.getlist('files')
-    print("files:", files)
-    if not files:
-        return jsonify({'error': 'Empty files list received'}), 400
 
-    results = []
-    for file in files:
-        if file.filename == '':
-            continue  # Skip empty file fields
-        
-        try:
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(UPLOAD_FOLDER, filename)
-            print(f"Saving file to {filepath}")
+    def generate():
+        for file in files:
+            if file.filename == '':
+                continue
+            try:
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(UPLOAD_FOLDER, filename)
 
-            # Ensure the upload folder exists
-            if not os.path.exists(UPLOAD_FOLDER):
-                os.makedirs(UPLOAD_FOLDER)
+                if not os.path.exists(UPLOAD_FOLDER):
+                    os.makedirs(UPLOAD_FOLDER)
 
-            file.save(filepath)
-            print(f"File saved successfully: {filepath}")
+                file.save(filepath)
+                result = process_audio_file(filepath)
+                os.remove(filepath)
 
-            # Process the audio file
-            result = process_audio_file(filepath)
-            print(f"Processing result: {result}")
+                yield f"data: {json.dumps({'filename': filename, 'transcription': result['transcription'], 'translation': result['translation']})}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'error': f'Failed to process {file.filename}: {str(e)}'})}\n\n"
 
-            results.append({
-                'filename': filename,
-                'transcription': result['transcription'],
-                'translation': result['translation']
-            })
+        yield "event: end\ndata: done\n\n"
 
-            os.remove(filepath)
-            print(f"File removed: {filepath}")
-        except Exception as e:
-            print(f"Error processing file {file.filename}: {str(e)}")
-            return jsonify({'error': f'Failed to process file {file.filename}: {str(e)}'}), 500
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
 
-    if not results:
-        return jsonify({'error': 'No valid files processed'}), 400
-
-    return jsonify(results)
 
 if __name__ == '__main__':
     print("Starting Flask server...")

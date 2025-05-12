@@ -6,11 +6,13 @@ import sys
 import io
 from openai import AzureOpenAI
 from dotenv import load_dotenv
+load_dotenv()  
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 # Initialize Azure OpenAI client
 client = AzureOpenAI(
     azure_endpoint='https://calcenteropenai.openai.azure.com/',
-    api_key='Add api key from .env',
+    api_key=os.getenv('API_KEY'),
     api_version="2024-05-01-preview"
 )
 # Create the assistant with clearer instructions for JSON output

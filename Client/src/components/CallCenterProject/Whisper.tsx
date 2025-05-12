@@ -18,28 +18,75 @@ function Whisper() {
     }
   };
 
+  // const handleProcessClick = async () => {
+  //   if (!selectedFiles) return;
+  //   setLoading(true);
+  //   setResults([]); // clear previous results
+
+  //   const formData = new FormData();
+  //   for (let i = 0; i < selectedFiles.length; i++) {
+  //     formData.append("files", selectedFiles[i]);
+  //   }
+  //   try {
+  //     const response = await fetch("http://localhost:5000/process-audio", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+  //     const data = await response.json();
+  //     console.log("data", data);
+  //     setResults(data); // ✅ Save the results to state
+  //   } catch (error) {
+  //     console.error("Error uploading files:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleProcessClick = async () => {
     if (!selectedFiles) return;
     setLoading(true);
-    setResults([]); // clear previous results
+    setResults([]);
 
     const formData = new FormData();
     for (let i = 0; i < selectedFiles.length; i++) {
       formData.append("files", selectedFiles[i]);
     }
-    try {
-      const response = await fetch("http://localhost:5000/process-audio", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      console.log("data", data);
-      setResults(data); // ✅ Save the results to state
-    } catch (error) {
-      console.error("Error uploading files:", error);
-    } finally {
-      setLoading(false);
+
+    const response = await fetch("http://localhost:5000/process-audio-stream", {
+      method: "POST",
+      body: formData,
+    });
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    if (!reader) return;
+
+    let partial = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      partial += decoder.decode(value, { stream: true });
+
+      const parts = partial.split("\n\n");
+      partial = parts.pop() || "";
+
+      for (const part of parts) {
+        if (part.startsWith("data: ")) {
+          const jsonString = part.replace("data: ", "").trim();
+          try {
+            const parsed = JSON.parse(jsonString);
+            setResults((prev) => [...prev, parsed]);
+          } catch (e) {
+            console.error("Failed to parse streamed JSON:", e);
+          }
+        }
+      }
     }
+
+    setLoading(false);
   };
 
   return (

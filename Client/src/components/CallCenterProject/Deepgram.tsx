@@ -121,7 +121,7 @@ function Deepgram() {
       });
 
       const result = await response.json();
-
+      console.log("result",result)
       if (response.ok) {
         // Append result for this file
         setTranscriptionResult((prev) => [...prev, ...result.results]);

@@ -99,49 +99,6 @@ UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 uploaded_filename = None 
 
-## deepgram 
-# @app.route('/audio', methods=['POST'])
-# def upload_audio():
-#     if not request.files:
-#         return jsonify({"error": "No audio file provided"}), 400
-#     results = []                                                                                            
-#     for key in request.files:
-#         audio = request.files[key]
-#         filename = audio.filename
-#         file_path = os.path.join(UPLOAD_FOLDER, filename)
-#         audio.save(file_path)
-#         try:
-#             NGROK_API_URL = "http://127.0.0.1:4040/api/tunnels"
-#             ngrok_response = requests.get(NGROK_API_URL).json()
-#             public_url = ngrok_response["tunnels"][0]["public_url"]
-#             audio_url = public_url + f"/audio?filename={filename}"
-#             deepgram_results = analyze_audio_with_deepgram(audio_url)
-#             if "error" in deepgram_results:
-#                 return jsonify({"error": deepgram_results["error"]}), 500
-#             # Insert results into the database
-#             insert_deepgram_results_to_db(deepgram_results, filename)
-#             results.append({
-#                 "filename": filename,
-#                 "results": deepgram_results
-#             })
-#         except Exception as e:
-#             return jsonify({"error": str(e)}), 500
-#     return jsonify({
-#         "message": "All files uploaded and analyzed successfully",
-#         "results": results
-#     })
-
-# @app.route('/audio', methods=['GET'])
-# def serve_uploaded_audio():
-#     filename = request.args.get('filename')
-#     if not filename:
-#         return jsonify({"error": "Filename is required"}), 400
-#     file_path = os.path.join(UPLOAD_FOLDER, filename)
-#     if not os.path.exists(file_path):
-#         return jsonify({"error": "File not found"}), 404
-#     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=False)
-
-
 @app.route('/audio', methods=['POST'])
 def upload_audio():
     if not request.files:
